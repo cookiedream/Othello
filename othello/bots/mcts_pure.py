@@ -15,7 +15,7 @@ import time
 
 
 
-show_detail = True
+show_detail = False
 
 def rollout_policy_fn(board: OthelloGame):
     """a coarse, fast version of policy_fn used in the rollout phase."""

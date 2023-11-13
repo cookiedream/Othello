@@ -1,7 +1,7 @@
 from othello.OthelloGame import *
 from othello.bots.Random import BOT as RandomBOT
 from othello.bots.mcts_pure import MCTS_BOT as MCTS_PureBOT
-from othello.bots.alpha_beta import Alpha_Beta_BOT
+from othello.bots.mcts import MCTSPlayer as mctspalyer
 
 n = 12
 
@@ -11,16 +11,16 @@ def self_play(black, white, verbose=True):
     return result
 
 def main():
-    n_game = 100
+    n_game = 5
     bot1_win = 0
     bot2_win = 0
-    bot1_name = "RandomBOT"
-    bot1 = RandomBOT()
-    # bot1_name = "mcts_bot_100"
-    # bot1 = MCTS_PureBOT(n_playout=100, n=n)
+    # bot1_name = "RandomBOT"
+    # bot1 = RandomBOT()
+    bot1_name = "mctspalyer"
+    bot1 = mctspalyer(n_playout=20, n=n)
     
-    bot2_name = "mcts_bot_100"
-    bot2 = MCTS_PureBOT(n_playout=1, n=n)
+    bot2_name = "MCTS_PureBOT"
+    bot2 = MCTS_PureBOT(n_playout=20, n=n)
 
     for i in range(n_game):
         print("Game {}".format(i+1))
