@@ -17,7 +17,7 @@ def main():
     # bot1_name = "RandomBOT"
     # bot1 = RandomBOT()
     bot1_name = "mctspalyer"
-    bot1 = mctspalyer(n_playout=20, n=n)
+    bot1 = mctspalyer(n_playout=2000, n=n)
     
     bot2_name = "MCTS_PureBOT"
     bot2 = MCTS_PureBOT(n_playout=20, n=n)

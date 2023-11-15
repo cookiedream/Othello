@@ -9,6 +9,7 @@ import numpy as np
 import copy
 from operator import itemgetter
 from othello.OthelloUtil import *
+from othello.Cy_OthelloUtil import *
 from othello.OthelloGame import *
 import time
 

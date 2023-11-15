@@ -1,6 +1,7 @@
 from typing import Any
 import numpy as np
-from othello.OthelloUtil import getValidMoves, executeMove, isValidMove, isEndGame
+# from othello.OthelloUtil import getValidMoves, executeMove, isValidMove, isEndGame
+from othello.Cy_OthelloUtil import getValidMoves, executeMove, isValidMove, isEndGame
 from copy import deepcopy
 
 # 需要連上平台比賽不需要使用此code
@@ -78,8 +79,8 @@ class OthelloGame(np.ndarray):
     def showBoard(self):
         
     # 棋盘初始化时展示的时间
-        step_time = {BLACK: 0, WHITE: 0}
-        total_time = {BLACK: 0, WHITE: 0}
+        # step_time = {BLACK: 0, WHITE: 0}
+        # total_time = {BLACK: 0, WHITE: 0}
             
         corner_offset_format = '{:^' + str(len(str(self.n)) + 1) + '}'
         print(corner_offset_format.format(''), end='')
@@ -101,25 +102,25 @@ class OthelloGame(np.ndarray):
         for i in range(self.n):
             print('{:^3}'.format(''), end='')
         print()
-        if (not step_time[BLACK] and not total_time[BLACK]) or (not step_time[WHITE] and not total_time[W]):
-            print("黑   棋: " + str(self.count(BLACK)))
-            print("白   棋: " + str(self.count(WHITE)))
-        else:
-            print("黑   棋: " + str(self.count(BLACK)))
-            print("白   棋: " + str(self.count(WHITE)))
+    #     if (not step_time[BLACK] and not total_time[BLACK]) or (not step_time[WHITE] and not total_time[W]):
+    #         print("黑   棋: " + str(self.count(BLACK)))
+    #         print("白   棋: " + str(self.count(WHITE)))
+    #     else:
+    #         print("黑   棋: " + str(self.count(BLACK)))
+    #         print("白   棋: " + str(self.count(WHITE)))
             
-    def count(self, color):
-        """
-        统计 color 一方棋子的数量。(O:白棋, X:黑棋, .:未落子状态)
-        :param color: [O,X,.] 表示棋盘上不同的棋子
-        :return: 返回 color 棋子在棋盘上的总数
-        """
-        count = 0
-        for y in range(self.n):
-            for x in range(self.n):
-                if self[x][y] == color:
-                    count += 1
-        return count
+    # def count(self, color):
+    #     """
+    #     统计 color 一方棋子的数量。(O:白棋, X:黑棋, .:未落子状态)
+    #     :param color: [O,X,.] 表示棋盘上不同的棋子
+    #     :return: 返回 color 棋子在棋盘上的总数
+    #     """
+    #     count = 0
+    #     for y in range(self.n):
+    #         for x in range(self.n):
+    #             if self[x][y] == color:
+    #                 count += 1
+    #     return count
 
 
     def clone(self):
