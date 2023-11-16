@@ -7,7 +7,6 @@ import numpy as np
 from othello.OthelloGame import *
 from othello.Cy_OthelloUtil import *
 import copy
-import time
 
 
 def rpf(board: OthelloGame):
@@ -34,8 +33,8 @@ def pvf(board: OthelloGame):
     # valids = getValidMoves(board, 1)
     # print(valids)
     # print(board.availables())
-    action_probs = np.ones(len(board.availables())) / len(board.availables())
-    return zip(board.availables(), action_probs), 0
+    return zip(board.availables(), np.ones(len(board.availables())) / len(board.availables())), 0
+
 
 
 class TreeNode(object):
@@ -70,24 +69,6 @@ class TreeNode(object):
         """
 
         return max(self._children.items(), key=lambda act_node: act_node[1].get_value(c_puct))
-
-    # def update(self, leaf_value):
-    #     """Update node values from leaf evaluation.
-    #     leaf_value: the value of subtree evaluation from the current player's
-    #         perspective.
-    #     """
-    #     # Count visit.
-    #     self._n_visits += 1
-    #     # Update Q, a running average of values for all visits.
-    #     self._Q += 1.0*(leaf_value - self._Q) / self._n_visits
-
-    # def update_recursive(self, leaf_value):
-    #     """Like a call to update(), but applied recursively for all ancestors.
-    #     """
-    #     # If it is not root, this node's parent should be updated first.
-    #     if self._parent:
-    #         self._parent.update_recursive(-leaf_value)
-    #     self.update(leaf_value)
 
     def get_value(self, c_puct):
         """Calculate and return the value for this node.
@@ -144,49 +125,14 @@ class MCTS(object):
         self._policy = pvf
         self._c_puct = c_puct
         self._n_playout = n_playout
-
-
+        self.board = None
+        self.n = None        
+        
     def reset_root(self, player_color):
         self.player_color = player_color
         self._root = TreeNode(None, 1.0, -player_color, player_color) # 第一個節點一定是對手的節點
     
     
-    # def _playout(self, state: OthelloGame):
-    #     """
-    #     一次模擬, 會選定一個葉節點, 並從葉節點開始模擬, 會先擴展一次, 直到遊戲結束, 最後更新分數。
-    #     Run a single playout from the root to the leaf, getting a value at
-    #     the leaf and propagating it back through its parents.
-    #     State is modified in-place, so a copy must be provided.
-    #     """
-    #     node = self._root
-    #     while True:
-    #         if node.is_leaf():
-    #             break
-
-    #         if isEndGame(state):  # 檢查是否已經達到終止狀態
-    #             break
-
-    #         action, node = node.select(self._c_puct)
-    #         state.move(str_2_np(action))
-
-    #     # 現在遊戲已經結束或到達葉節點
-    #     # 此處可以進行結算或估值，然後更新節點
-
-    #     # 如果遊戲結束，可以計算結果，並返回結果
-    #     end = isEndGame(state)
-    #     if end:
-    #         if end == self.player_color:
-    #             leaf_value = 1  # 我們贏了
-    #         else:
-    #             leaf_value = -1  # 對手贏了
-    #     else:
-    #         # 否則進行隨機模擬或其他策略
-    #         leaf_value = self._evaluate_rollout(state)
-
-    #     # 更新節點值
-    #     node.back_update(leaf_value)
-
-
     def _playout(self, state: OthelloGame):
         """
         一次模擬, 會選定一個葉節點, 並從葉節點開始模擬, 會先擴展一次, 直到遊戲結束, 最後更新分數。
@@ -228,21 +174,40 @@ class MCTS(object):
             return 1 if end == self.player_color else -1
 
 
-    def get_move(self, state, max_time=3.5):
-        """Runs all playouts sequentially and returns the most visited action.
-        state: the current game state
-        max_time: the maximum time allowed for playouts in seconds
+    # def get_move(self, new_board: OthelloGame , mycolor):
+    #     start_time = time.time() # 計算模擬時間
+    #     self.player_color = mycolor # 設定我方顏色
+    #     self.mcts = MCTS(pvf , self._c_puct, self._n_playout)
 
-        Return: the selected action
-        """
-        start_time = time.time()
+    #     if self.mcts._root is None:
+    #         self.mcts.reset_root(mycolor) # 重置tree
+    #     else:
+    #         oppo_move = find_opp_move(self.board, new_board, mycolor=mycolor, to_str=True) # 取得對手落子(str)   
+    #         self.mcts.update_with_move(oppo_move, mycolor) # 更新tree至當前狀態
+            
+    #     self.board[:] = new_board[:] # 更新盤面
         
-        while (time.time() - start_time) < max_time:
-            for n in range(self._n_playout):
-                self._playout(copy.deepcopy(state))
-                print(n)
-        return max(self._root._children.items(), key=lambda act_node: act_node[1]._n_visits)[0]
+    #     self.board.curr_player = self.player_color # 設定當前玩家
+    #     move = self.mcts._get_move(self.board, start_time) # 取得MCTS的落子(str)
+        
+    #     move_position = (move // self.n, move % self.n) # 轉換成np.array
+    #     self.board.move(move_position)  # 更新盤面(我方落子)
+    #     self.mcts.update_with_move([move], mycolor) # 更新tree至當前狀態
+    #     return move_position
+    
+    def get_move(self, state): # 修正這裡，傳遞 mycolor 參數
+            """Runs all playouts sequentially and returns the most visited action.
+            state: the current game state
 
+            Return: the selected action
+            """
+            # print("OK")
+            for n in range(self._n_playout): # 進行n_playout次模擬
+                # state_copy = copy.deepcopy(state)
+                # print(state_copy.current_player) 
+                self._playout(copy.deepcopy(state)) # 進行一次模擬
+                # print(n)
+            return max(self._root._children.items(), key=lambda act_node: act_node[1]._n_visits)[0] # 取得最佳落子
 
     def update_with_move(self, last_move, player_color):
         """Step forward in the tree, keeping everything we already know
@@ -260,14 +225,14 @@ class MCTS(object):
                     break
         if (not update) or (update and len(last_move) > 0):
             self.reset_root(player_color)
-
+            
     def __str__(self):
         return "MCTS"
 
 
 class MCTSPlayer(object):
     """AI player based on MCTS"""
-    def __init__(self, c_puct=5, n_playout=50, n=8):
+    def __init__(self, c_puct=5, n_playout=50, n=12):
         self.mcts = MCTS(pvf, c_puct, n_playout)
         self.game = OthelloGame(n)
         self.player = None
@@ -296,9 +261,6 @@ class MCTSPlayer(object):
 
         move_str = self.mcts.get_move(self.game) # 取得MCTS的落子(str)
         # print(move_str)
-        # if time.time() - self.game.start_time > 3.5:
-        #     print("time out")
-        #     return None
         move = str_2_np(move_str) # 轉換成np.array
         self.game.move(move) # 更新盤面(我方落子)
         # print(move)
@@ -306,9 +268,7 @@ class MCTSPlayer(object):
         print(move)
         print("=========================================================")
 
-
         # self.mcts.update_with_move([move_str], color) # 更新tree至當前狀態
-
         return move
 
     def __str__(self):

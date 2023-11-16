@@ -61,7 +61,7 @@ def np_2_str(position):
 def str_2_np(position):
     return np.array([int(position.split(',')[0]), int(position.split(',')[1])])
 
-def find_opp_move(board, current_board, to_str=False):
+def find_opp_move(board, current_board, mycolor,to_str=False):
     # 搜尋對手落子位置
     opp_moves = list()
     for y, x in zip(*np.where(board != current_board)):
