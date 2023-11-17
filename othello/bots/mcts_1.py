@@ -10,7 +10,7 @@ import copy
 import time
 
 
-def rpf(board: OthelloGame):
+def rpf(board: OthelloGame):    # 隨機策略
     """a coarse, fast version of policy_fn used in the rollout phase."""
     # rollout randomly
     # action_probs = np.random.rand(len(board.availables))
@@ -26,7 +26,7 @@ def rpf(board: OthelloGame):
     return position
 
 
-def pvf(board: OthelloGame):
+def pvf(board: OthelloGame):   # 策略函數
     """a function that takes in a state and outputs a list of (action, probability)
     tuples and a score for the state"""
     # return uniform probabilities and 0 score for pure MCTS
@@ -38,7 +38,7 @@ def pvf(board: OthelloGame):
 
 
 
-class TreeNode(object):
+class TreeNode(object): # MCTS的節點
     """A node in the MCTS tree. Each node keeps track of its own value Q,
     prior probability P, and its visit-count-adjusted prior score u.
     """
@@ -53,7 +53,7 @@ class TreeNode(object):
         self.curr_player = curr_player
         self.player_color = player_color
 
-    def expand(self, action_priors, next_player):
+    def expand(self, action_priors, next_player): # 擴展節點
         """
             action_priors: (action, prob)， 所有可以出的牌和其機率
             next_player: 下一個出牌的人
@@ -71,7 +71,7 @@ class TreeNode(object):
 
         return max(self._children.items(), key=lambda act_node: act_node[1].get_value(c_puct))
 
-    def get_value(self, c_puct):
+    def get_value(self, c_puct): # 計算節點的值
         """Calculate and return the value for this node.
         It is a combination of leaf evaluations Q, and this node's prior
         adjusted for its visit count, u.
@@ -82,7 +82,7 @@ class TreeNode(object):
 
         return self._Q + self._u
 
-    def back_update(self, leaf_value):
+    def back_update(self, leaf_value): # 更新節點的值
         """
             反向去更所有直系節點的Q值和訪問次數
             leaf_value: 從葉節點到當前節點的分數，leaf_value自己的分數，若當前節點為對手，則leaf_value為13-leaf_value
@@ -99,16 +99,16 @@ class TreeNode(object):
         if self._parent:
             self._parent.back_update(leaf_value)
 
-    def is_leaf(self):
+    def is_leaf(self): # 判斷是否為葉節點
         """Check if leaf node (i.e. no nodes below this have been expanded).
         """
         return self._children == {}
 
-    def is_root(self):
+    def is_root(self): # 判斷是否為根節點
         return self._parent is None
 
 
-class MCTS(object):
+class MCTS(object): # MCTS
     """A simple implementation of Monte Carlo Tree Search."""
 
     def __init__(self, pvf, c_puct=5, n_playout=1000, time_limit=2.5):
@@ -135,7 +135,7 @@ class MCTS(object):
         self._root = TreeNode(None, 2.9, -player_color, player_color) # 第一個節點一定是對手的節點
     
     
-    def _playout(self, state: OthelloGame):
+    def _playout(self, state: OthelloGame): # 模擬
         """
         一次模擬, 會選定一個葉節點, 並從葉節點開始模擬, 會先擴展一次, 直到遊戲結束, 最後更新分數。
         Run a single playout from the root to the leaf, getting a value at
@@ -155,20 +155,20 @@ class MCTS(object):
         # Update value and visit count of nodes in this traversal.
         node.back_update(leaf_value)
 
-    def evaluate(self, state: OthelloGame, limit=1000): 
+    def evaluate(self, state: OthelloGame, limit=1000):  # 模擬到結束
         """Use the rollout policy to play until the end of the game,
         returning +1 if the current player wins, -1 if the opponent wins,
         and 0 if it is a tie.
         """
-        start_time = time.time()
-        for i in range(limit):
+        start_time = time.time() # 計算模擬時間
+        for i in range(limit): # 進行limit次模擬
             end = isEndGame(state)
             if end is not None:
                 break
             position = rpf(state)
             # max_action = max(action_probs, key=itemgetter(1))[0]
             state.move(position)
-            if time.time() - start_time > self.time_limit:
+            if time.time() - start_time > self.time_limit: # 若模擬時間超過限制，則跳出迴圈
                 break
         else:
             # If no break from the loop, issue a warning.
@@ -176,7 +176,7 @@ class MCTS(object):
         if end == 0:  # tie
             return 0
         else:
-            return 1 if end == self.player_color else -1
+            return 1 if end == self.player_color else -1 
 
 
     # def get_move(self, new_board: OthelloGame , mycolor):
@@ -216,7 +216,7 @@ class MCTS(object):
                     break
             return max(self._root._children.items(), key=lambda act_node: act_node[1]._n_visits)[0] # 取得最佳落子
 
-    def update_with_move(self, last_move, player_color):
+    def update_with_move(self, last_move, player_color): # 更新tree至當前狀態
         """Step forward in the tree, keeping everything we already know
         about the subtree.
         last_move: 更新tree至當前狀態(str) (list)(可能不只一步)
