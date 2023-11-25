@@ -1,6 +1,5 @@
 from othello.OthelloGame import *
 from othello.bots.Random import BOT as RandomBOT
-from othello.bots.mcts_pure import MCTS_BOT as MCTS_PureBOT
 from othello.bots.mcts import MCTSPlayer as mctspalyer
 from othello.bots.mcts_1 import MCTS_Player as mctspalyer1
 n = 12
